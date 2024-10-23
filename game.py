@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import time
+import random
 
 
 # noinspection PyTypeChecker
@@ -11,6 +12,10 @@ def main():
     # define fps
     clock = pygame.time.Clock()
     fps = 60
+
+    # define game variables
+    rows = 5
+    cols = 8
 
     # define colors
     red = (255, 0, 0)
@@ -112,9 +117,35 @@ def main():
             if self.rect.bottom < 0:
                 self.kill()
 
+    # create asteroids
+    class Aliens(pygame.sprite.Sprite):
+        def __init__(self, x, y):
+
+            # initialises aliens as a sprite
+            pygame.sprite.Sprite.__init__(self)
+            self.image = pygame.image.load("assets/aliens/" + str(random.randint(0,4)) + ".png")
+
+            # converts sprites into rectangle objects
+            self.rect = self.image.get_rect()
+            self.rect.center = [x, y]
+
+            # movement of aliens
+            self.move_counter = 0
+            self.move_direction = 1
+
+        def update(self):
+            self.rect.x += self.move_direction
+            self.move_counter += 1
+            if abs(self.move_counter) > 75:
+                self.move_direction *= -1
+                self.move_counter *= self.move_direction
+
     # create a sprite group
     spaceship_group = pygame.sprite.Group()
     bullet_group = pygame.sprite.Group()
+    alien_group = pygame.sprite.Group()
+
+    create_aliens(rows, cols, Aliens, alien_group)
 
     # create player with initial health as 3
     spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
@@ -140,10 +171,12 @@ def main():
 
         # update sprite groups
         bullet_group.update()
+        alien_group.update()
 
         # draw sprite groups
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
+        alien_group.draw(screen)
 
         # update the game
         pygame.display.update()
@@ -153,6 +186,14 @@ def main():
 # sets an image as game background
 def game_bg(screen, bg):
     screen.blit(bg, (0, 0))
+
+
+# to create aliens
+def create_aliens(rows, cols, aliens, alien_group):
+    for row in range(rows):
+        for col in range(cols):
+            alien = aliens(100 + col * 100, 100 + row * 70)
+            alien_group.add(alien)
 
 
 if __name__ == "__main__":
