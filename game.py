@@ -3,6 +3,7 @@ from pygame.locals import *
 import time
 
 
+# noinspection PyTypeChecker
 def main():
     # initialise pygame
     pygame.init()
@@ -28,6 +29,7 @@ def main():
     bg = pygame.image.load("assets/space.jpeg")
 
     # creating a spaceship
+    # noinspection PyTypeChecker
     class Spaceship(pygame.sprite.Sprite):
         def __init__(self, x, y, health):
 
@@ -35,7 +37,7 @@ def main():
             pygame.sprite.Sprite.__init__(self)
             self.image = pygame.image.load("assets/spaceship.png")
 
-            # convert image into a rectangle object
+            # convert sprite into a rectangle object
             self.rect = self.image.get_rect()
 
             # positions it in the center
@@ -44,9 +46,15 @@ def main():
             self.health_start = health
             self.health_remaining = health
 
+            # notes when was last bullet created (to prevent bullet spam)
+            self.last_shot = pygame.time.get_ticks()
+
         def update(self):
             # set movement speed
             speed = 8
+
+            # cooldown variable in milliseconds
+            cooldown = 450
 
             # get key press
             key = pygame.key.get_pressed()
@@ -55,9 +63,20 @@ def main():
             if key[pygame.K_RIGHT] and self.rect.right < screen_width:
                 self.rect.x += speed
 
+            # record current time (to prevent bullet spam)
+            time_now = pygame.time.get_ticks()
+
+            # shooting functionality
+            if key[pygame.K_SPACE] and time_now - self.last_shot > cooldown:
+                bullet = Bullets(self.rect.centerx, self.rect.top)
+                bullet_group.add(bullet)
+
+                # restarts cooldown timer
+                self.last_shot = time_now
+
             # draw health bar
             pygame.draw.rect(
-                screen, red, (self.rect.x, (self.rect.bottom + 10), self.rect.width, 15)
+                screen, red, (self.rect.x, (self.rect.bottom + 10), self.rect.width, 10)
             )
             if self.health_remaining > 0:
                 pygame.draw.rect(
@@ -70,12 +89,32 @@ def main():
                             self.rect.width
                             * (self.health_remaining / self.health_start)
                         ),
-                        15,
+                        10,
                     ),
                 )
 
+    # create bullets
+    class Bullets(pygame.sprite.Sprite):
+        def __init__(self, x, y):
+
+            # initialises bullet as a sprite
+            pygame.sprite.Sprite.__init__(self)
+            self.image = pygame.image.load("assets/bullet.png")
+
+            # convert the sprite into a rectangle object
+            self.rect = self.image.get_rect()
+            self.rect.center = [x, y]
+
+        def update(self):
+            self.rect.y -= 5
+
+            # deletes bullets from the group when they leave the screen
+            if self.rect.bottom < 0:
+                self.kill()
+
     # create a sprite group
     spaceship_group = pygame.sprite.Group()
+    bullet_group = pygame.sprite.Group()
 
     # create player with initial health as 3
     spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
@@ -100,7 +139,11 @@ def main():
         spaceship.update()
 
         # update sprite groups
+        bullet_group.update()
+
+        # draw sprite groups
         spaceship_group.draw(screen)
+        bullet_group.draw(screen)
 
         # update the game
         pygame.display.update()
