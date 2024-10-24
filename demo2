@@ -62,13 +62,13 @@ def main():
             # Draw health bar below the spaceship with increased size
             health_bar_width = self.rect.width * 1.5  # Increase width for better visibility
             health_bar_height = 20  # Increased height for a more prominent look
-            
+
             # Draw background for health bar (red)
             pygame.draw.rect(screen, red, (self.rect.x - (health_bar_width - self.rect.width) / 2,
                                              self.rect.bottom + 10,
                                              health_bar_width,
                                              health_bar_height))
-            
+
             # Draw remaining health (green)
             if self.health_remaining > 0:
                 pygame.draw.rect(screen, green,
@@ -95,7 +95,7 @@ def main():
             self.image = pygame.image.load("assets/aliens/" + str(random.randint(0, 4)) + ".png")
             self.rect = self.image.get_rect()
             self.rect.center = [x, y]
-        
+
         def update(self):
             pass  # No movement logic for aliens
 
@@ -161,14 +161,14 @@ def main():
                 hit_aliens = pygame.sprite.spritecollide(bullet, alien_group, True)
                 if hit_aliens:
                     bullet.kill() # Remove bullet on hit
-            
+
                     # Check for victory condition after hitting aliens
                     if not alien_group: 
                         victory_message_displayed = True
-            
+
             # Check for collisions between alien bullets and the spaceship
             hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
-            
+
             if hit_spaceship:
                 spaceship.health_remaining -= len(hit_spaceship) * 1 # Reduce health based on hits; reduced damage to just -1 per hit.
 
@@ -187,7 +187,7 @@ def main():
            time.sleep(2)  
            run=False
 
-        if victory_message_displayed:
+        if victory_message_displayed and not game_over: 
            # Display "You Won" message when all aliens are destroyed.
            font_win = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
            text_surface_win = font_win.render('You Won!', True, white)   # Render the text.
@@ -215,4 +215,3 @@ def game_bg(screen, bg):
 
 if __name__ == "__main__":
     main()
-                                                  
