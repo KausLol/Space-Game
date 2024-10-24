@@ -172,10 +172,10 @@ def main():
                 game_over = True
 
         else:
-            # Display "You Lost" message when game is over
-            font = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
-            text_surface = font.render('You Lost', True, white)   # Render the text.
-            
+           # Display "You Lost" message when game is over
+           font = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+           text_surface = font.render('You Lost', True, white)   # Render the text.
+           
            # Center the text on the screen.
            text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
            screen.blit(text_surface, text_rect)   # Draw the text on the screen.
