@@ -12,8 +12,8 @@ MAZE_WIDTH = SCREEN_WIDTH // CELL_SIZE
 MAZE_HEIGHT = (SCREEN_HEIGHT - 50) // CELL_SIZE  # Adjusted height for timer display
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
+BLUE = (0, 0, 255)  # Player color set to BLUE
+RED = (255, 0, 0)  # Target color set to RED
 
 
 # Create Maze
@@ -34,9 +34,9 @@ def draw_maze(screen, maze):
     for y in range(MAZE_HEIGHT):
         for x in range(MAZE_WIDTH):
             if maze[y][x] == 1:
-                pygame.draw.rect(screen, BLACK, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                pygame.draw.rect(screen, WHITE, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Walls in WHITE
             elif maze[y][x] == 2:
-                pygame.draw.rect(screen, RED, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                pygame.draw.rect(screen, RED, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Endpoint in RED
 
 
 # Player class
@@ -55,7 +55,7 @@ class Player:
             self.y = new_y
 
     def draw(self, screen):
-        pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        pygame.draw.rect(screen, BLUE, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Player in BLUE
 
 
 # Timer class
@@ -72,10 +72,10 @@ class Timer:
             remaining_time = 0
         minutes = remaining_time // 60
         seconds = remaining_time % 60
-        return f"Time: {minutes:02}:{seconds:02}"
+        return f"Time: {minutes:01}:{seconds:02}"
 
     def draw(self, screen):
-        time_text = self.font.render(self.get_time(), True, BLACK)
+        time_text = self.font.render(self.get_time(), True, WHITE)  # Timer text in WHITE
         screen.blit(time_text, (10, SCREEN_HEIGHT - 40))  # Adjusted position to avoid overlap with other elements
 
     def is_time_up(self):
@@ -92,7 +92,9 @@ def main():
     clock = pygame.time.Clock()
     maze = create_maze()
     player = Player()
-    countdown_time = 120  # Countdown time in seconds (2 minutes)
+
+    countdown_time = 60  # Countdown time reduced to 60 seconds (1 minute)
+
     timer = Timer(countdown_time)
 
     running = True
@@ -112,7 +114,7 @@ def main():
                 elif event.key == pygame.K_RIGHT:
                     player.move(1, 0, maze)
 
-        screen.fill(WHITE)
+        screen.fill(BLACK)  # Set background to BLACK
         draw_maze(screen, maze)
         player.draw(screen)
         timer.draw(screen)
@@ -127,12 +129,12 @@ def main():
         pygame.display.flip()
         clock.tick(30)
 
-    screen.fill(WHITE)
+    screen.fill(BLACK)  # Set final screen background to BLACK
 
     if won:
-        time_text = font.render('You won!', True, BLACK)
+        time_text = font.render('You Escaped!', True, WHITE)  # Winning message in WHITE
     else:
-        time_text = font.render('Time is up!', True, BLACK)
+        time_text = font.render('Time is up!', True, WHITE)  # Losing message in WHITE
 
     screen.blit(time_text,
                 (SCREEN_WIDTH // 2 - time_text.get_width() // 2,
