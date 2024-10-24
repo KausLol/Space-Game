@@ -16,7 +16,7 @@ def main():
     # define game variables
     rows = 4
     cols = 8
-    alien_cooldown = 800  # bullet cooldown in milliseconds
+    alien_cooldown = 10000  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
     # define colors
@@ -63,7 +63,7 @@ def main():
             speed = 8
 
             # set cooldown
-            cooldown = 450
+            cooldown = 0
 
             # get keypress
             key = pygame.key.get_pressed()
@@ -387,18 +387,85 @@ def fade_out_text(screen, text_surface, alien_image, alien_image_rect):
 
 # to proceed to the next level
 def win_message_1(screen, screen_width, screen_height):
+    # Load GIF frames (assuming you have frames saved as individual images)
+    gif_frames = [pygame.image.load(f"assets/planet1_gif/frame_{i}_delay-0.17s.png") for i in range(59)]
+    gif_index = 0
+    gif_timer = pygame.time.get_ticks()
 
-    # renders text and shows win message after first level
-    font = pygame.font.Font(None, 74)
-    text_surface = font.render("Victory! You can proceed...", True, (255, 255, 255))
-    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+    # Load victory message text
+    font = pygame.font.Font(None, 50)
+    text_surface = font.render("Victory! You can proceed to Planet Solaris...", True, (255, 255, 255))
 
-    screen.fill((0, 0, 0))
-    screen.blit(text_surface, text_rect)
+    # Get the position for the text
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2 - 100))
 
-    pygame.display.update()
-    time.sleep(2)
+    # Set up the position for the GIF (below the text)
+    gif_rect = gif_frames[0].get_rect(center=(screen_width // 2, screen_height // 2 + 50))
 
+    # Fade-in effect
+    alpha_value = 0
+    while alpha_value < 255:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+        # Fill the screen with black
+        screen.fill((0, 0, 0))
+
+        # Set alpha for the text and gif
+        text_surface.set_alpha(alpha_value)
+        gif_frames[gif_index].set_alpha(alpha_value)
+
+        # Draw text and gif on the screen
+        screen.blit(text_surface, text_rect)
+        screen.blit(gif_frames[gif_index], gif_rect)
+
+        # Update alpha value
+        alpha_value += 5
+        pygame.display.update()
+        time.sleep(0.03)
+
+    # Main display loop for the GIF and message
+    display_duration = 2  # Display duration in seconds
+    start_time = pygame.time.get_ticks()
+    while pygame.time.get_ticks() - start_time < display_duration * 1000:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+        # Fill the screen with black
+        screen.fill((0, 0, 0))
+
+        # Draw the text and current frame of the GIF
+        screen.blit(text_surface, text_rect)
+        screen.blit(gif_frames[gif_index], gif_rect)
+
+        # Update GIF frame every 100 ms
+        if pygame.time.get_ticks() - gif_timer > 100:
+            gif_index = (gif_index + 1) % len(gif_frames)
+            gif_timer = pygame.time.get_ticks()
+
+        pygame.display.update()
+
+    # Fade-out effect
+    for alpha in range(255, -1, -5):
+        # Set the fading alpha for both text and GIF
+        text_surface.set_alpha(alpha)
+        gif_frames[gif_index].set_alpha(alpha)
+
+        # Fill the screen with black
+        screen.fill((0, 0, 0))
+
+        # Redraw the text and gif with decreasing alpha
+        screen.blit(text_surface, text_rect)
+        screen.blit(gif_frames[gif_index], gif_rect)
+
+        pygame.display.update()
+        time.sleep(0.02)
+
+    # Exit the game after fading out
     exit()
 
 
