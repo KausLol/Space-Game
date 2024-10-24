@@ -5,37 +5,37 @@ import random
 
 
 def main():
-    # initialise pygame
+    # Initialise pygame
     pygame.init()
 
-    # define fps
+    # Define fps
     clock = pygame.time.Clock()
     fps = 60
 
-    # define game variables
+    # Define game variables
     rows = 4
     cols = 8
     alien_cooldown = 500  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
-    # define colors
+    # Define colors
     red = (255, 0, 0)
     green = (0, 255, 0)
     white = (255, 255, 255)
 
-    # window dimensions
+    # Window dimensions
     screen_width = 900
     screen_height = 900
 
     screen = pygame.display.set_mode((screen_width, screen_height))
 
-    # set game title
+    # Set game title
     pygame.display.set_caption("Space Game")
 
-    # background image
+    # Background image
     bg = pygame.image.load("assets/space.jpeg")
 
-    # create a spaceship object
+    # Create a spaceship object
     class Spaceship(pygame.sprite.Sprite):
         def __init__(self, x, y, health):
             pygame.sprite.Sprite.__init__(self)
@@ -61,7 +61,7 @@ def main():
                 bullet_group.add(bullet)
                 self.last_shot = time_now
 
-            # draw health bar
+            # Draw health bar
             pygame.draw.rect(
                 screen, red, (self.rect.x, (self.rect.bottom + 10), self.rect.width, 10)
             )
@@ -184,7 +184,7 @@ def main():
             if not alien_group:
                 level_number += 1
                 rows += level_number - 1  # Increase rows for next level
-                game2()
+                create_aliens(rows + level_number - 1, cols)
 
             # Check for game over condition
             if spaceship.health_remaining <= 0:
@@ -207,12 +207,8 @@ def game_bg(screen, bg):
     screen.blit(bg, (0, 0))
 
 
-def game2():
-    exit()
-
-
 def end_screen(screen):
-    clock.tick(60)  
+   clock.tick(60)  
    
    # Load the spaceship image for the end screen animation.
    ship_image_path="assets/spaceship.png"
