@@ -59,12 +59,13 @@ def main():
                 bullet_group.add(bullet)
                 self.last_shot = time_now
 
-            # draw health bar
-            pygame.draw.rect(screen, red, (self.rect.x, (self.rect.bottom + 10), self.rect.width, 10))
-            if self.health_remaining > 0:
-                pygame.draw.rect(screen, green,
-                                 (self.rect.x, (self.rect.bottom + 10),
-                                  int(self.rect.width * (self.health_remaining / self.health_start)), 10))
+            # Draw pixelated health bar at the top of the screen
+            pixel_size = 10  # Size of each pixel in the health bar
+            for i in range(self.health_start):
+                if i < self.health_remaining:
+                    pygame.draw.rect(screen, green, (i * pixel_size + 10, 10, pixel_size - 2, pixel_size - 2))
+                else:
+                    pygame.draw.rect(screen, red, (i * pixel_size + 10, 10, pixel_size - 2, pixel_size - 2))
 
     class Bullets(pygame.sprite.Sprite):
         def __init__(self, x, y):
