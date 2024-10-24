@@ -157,6 +157,7 @@ def main():
             
             # Check for collisions between alien bullets and the spaceship
             hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
+            
             if hit_spaceship:
                 spaceship.health_remaining -= len(hit_spaceship) # Reduce health based on hits
 
@@ -171,12 +172,20 @@ def main():
            text_rect_loss = text_surface_loss.get_rect(center=(screen_width // 2, screen_height // 2))
            screen.blit(text_surface_loss, text_rect_loss)   # Draw the text on the screen.
 
+           # Pause before quitting to let players see the message.
+           time.sleep(2)  
+           run=False
+
         if victory_message_displayed:
            # Display "You Won" message when all aliens are destroyed.
            font_win = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
            text_surface_win = font_win.render('You Won!', True, white)   # Render the text.
            text_rect_win = text_surface_win.get_rect(center=(screen_width // 2, screen_height // 2))
            screen.blit(text_surface_win, text_rect_win)   # Draw the text on the screen.
+
+           # Pause before quitting to let players see the message.
+           time.sleep(2)  
+           run=False
 
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
@@ -187,7 +196,6 @@ def main():
 
         if game_over or victory_message_displayed: 
            time.sleep(2)   # Pause before quitting to let players see the message.
-           run=False
 
     pygame.quit()
 
