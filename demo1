@@ -1,15 +1,3 @@
-Reverse this change
-
-To reverse the changes that made the aliens move down and introduced a victory message, we can revert to the original behavior where aliens do not move downwards and only display a "You Lost" message when the spaceship's health reaches zero.
-
-Here’s how you can modify the code back to its previous form:
-
-1. **Remove downward movement for aliens**: Keep the aliens stationary in their original positions.
-2. **Remove victory condition**: Only check for the game-over condition based on the spaceship's health.
-
-Here’s the modified code:
-
-```python
 import pygame
 from pygame.locals import *
 import time
@@ -132,6 +120,7 @@ def main():
 
     run = True
     game_over = False
+    victory_message_displayed = False
 
     while run:
         clock.tick(fps)
@@ -162,6 +151,10 @@ def main():
                 if hit_aliens:
                     bullet.kill() # Remove bullet on hit
             
+                    # Check for victory condition after hitting aliens
+                    if not alien_group: 
+                        victory_message_displayed = True
+            
             # Check for collisions between alien bullets and the spaceship
             hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
             if hit_spaceship:
@@ -178,6 +171,13 @@ def main():
            text_rect_loss = text_surface_loss.get_rect(center=(screen_width // 2, screen_height // 2))
            screen.blit(text_surface_loss, text_rect_loss)   # Draw the text on the screen.
 
+        if victory_message_displayed:
+           # Display "You Won" message when all aliens are destroyed.
+           font_win = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+           text_surface_win = font_win.render('You Won!', True, white)   # Render the text.
+           text_rect_win = text_surface_win.get_rect(center=(screen_width // 2, screen_height // 2))
+           screen.blit(text_surface_win, text_rect_win)   # Draw the text on the screen.
+
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
         alien_group.draw(screen)
@@ -185,7 +185,7 @@ def main():
 
         pygame.display.update()
 
-        if game_over: 
+        if game_over or victory_message_displayed: 
            time.sleep(2)   # Pause before quitting to let players see the message.
            run=False
 
@@ -196,15 +196,3 @@ def game_bg(screen, bg):
 
 if __name__ == "__main__":
     main()
-```
-
-### Key Reversions Made:
-
-1. **Alien Movement**: The `update` method of the `Aliens` class now contains no movement logic (`pass` statement). The aliens will remain stationary.
-
-2. **Victory Condition Removed**: The logic that checked for a victory condition after hitting all aliens has been removed. The game will now only check for a loss condition based on the spaceship's health.
-
-3. **Game Over Logic**: The handling of displaying the "You Lost" message remains intact. 
-
-This code should now reflect the original behavior where aliens do not move downwards and only a loss message is displayed when the player's health reaches zero. Let me know if you need any further modifications or assistance!
-
