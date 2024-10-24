@@ -88,11 +88,22 @@ def main():
             self.move_direction = 1
 
         def update(self):
-            self.rect.x += self.move_direction
-            self.move_counter += 1
-            if abs(self.move_counter) > 75:
-                self.move_direction *= -1
-                self.move_counter *= self.move_direction
+            # Move aliens left and right and down periodically
+            if self.move_counter < 75:
+                self.rect.x += self.move_direction
+                self.move_counter += 1
+            else:
+                # Change direction and move down when reaching the edge
+                if self.rect.left <= 0 or self.rect.right >= screen_width:
+                    self.move_direction *= -1
+                    for alien in alien_group:
+                        alien.rect.y += 20  # Move all aliens down by a fixed amount
+                else:
+                    for alien in alien_group:
+                        alien.rect.y += 1   # Move all aliens down slowly
+
+                # Reset move counter after changing direction
+                self.move_counter = 0
 
     class Alien_Bullets(pygame.sprite.Sprite):
         def __init__(self, x, y):
@@ -126,6 +137,7 @@ def main():
 
     run = True
     game_over = False
+    victory_message_displayed = False
 
     while run:
         clock.tick(fps)
@@ -156,29 +168,32 @@ def main():
                 if hit_aliens:
                     bullet.kill() # Remove bullet on hit
 
+                    # Check for victory condition after hitting aliens
+                    if not alien_group: 
+                        victory_message_displayed = True
+            
             # Check for collisions between alien bullets and the spaceship
             hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
             if hit_spaceship:
                 spaceship.health_remaining -= len(hit_spaceship) # Reduce health based on hits
 
-            # Check if all aliens are destroyed to advance levels
-            if not alien_group:
-                level_number += 1
-                rows += level_number - 1 # Increase rows for next level
-                create_aliens(rows + level_number - 1, cols) # Create new aliens for the next level
-            
             # Check for game over condition
             if spaceship.health_remaining <= 0:
                 game_over = True
 
         else:
            # Display "You Lost" message when game is over
-           font = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
-           text_surface = font.render('You Lost', True, white)   # Render the text.
-           
-           # Center the text on the screen.
-           text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
-           screen.blit(text_surface, text_rect)   # Draw the text on the screen.
+           font_loss = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+           text_surface_loss = font_loss.render('You Lost', True, white)   # Render the text.
+           text_rect_loss = text_surface_loss.get_rect(center=(screen_width // 2, screen_height // 2))
+           screen.blit(text_surface_loss, text_rect_loss)   # Draw the text on the screen.
+
+        if victory_message_displayed:
+           # Display "You Won" message when all aliens are destroyed.
+           font_win = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+           text_surface_win = font_win.render('You Won!', True, white)   # Render the text.
+           text_rect_win = text_surface_win.get_rect(center=(screen_width // 2, screen_height // 2))
+           screen.blit(text_surface_win, text_rect_win)   # Draw the text on the screen.
 
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
@@ -186,6 +201,10 @@ def main():
         alien_bullet_group.draw(screen)
 
         pygame.display.update()
+
+        if game_over or victory_message_displayed: 
+           time.sleep(2)   # Pause before quitting to let players see the message.
+           run=False
 
     pygame.quit()
 
