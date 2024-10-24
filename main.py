@@ -1,3 +1,4 @@
+# libraries
 import pygame
 from pygame.locals import *
 import time
@@ -33,7 +34,7 @@ def main():
     screen = pygame.display.set_mode((screen_width, screen_height))
 
     # set game title
-    pygame.display.set_caption("Space Game")
+    pygame.display.set_caption("Stellar Siege")
 
     # background image
     bg = pygame.image.load("assets/space.jpeg")
@@ -182,6 +183,9 @@ def main():
     spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
     spaceship_group.add(spaceship)
 
+    # show title screen
+    show_title_screen(screen_width, screen_height)
+
     # Show welcome screen before starting the game
     show_welcome_screen(screen, screen_width, screen_height)
 
@@ -190,7 +194,6 @@ def main():
     game_over = False
 
     while run:
-
         # sets fps
         clock.tick(fps)
 
@@ -297,8 +300,63 @@ def create_aliens(rows, cols, alien_group, aliens):
             alien_group.add(alien)
 
 
+# to show the title screen
+def show_title_screen(screen_width, screen_height):
+    pygame.font.init()
+
+    # Load the UFO image
+    image = pygame.image.load('assets/ufo.png').convert_alpha()
+
+    # Set up fonts
+    font = pygame.font.Font(None, 74)
+    title_surface = font.render('Stellar Siege', True, (255, 255, 255))
+
+    # Set up screen
+    screen = pygame.display.set_mode((screen_width, screen_height))
+
+    # Calculate center positions
+    center_y = screen_height // 2
+    title_rect = title_surface.get_rect(center=(screen_width // 2, center_y - 50))  # 50 pixels above center
+    ufo_rect = image.get_rect(center=(screen_width // 2, center_y + 50))  # 50 pixels below center
+
+    # Fade-in effect
+    for alpha in range(0, 256, 5):
+        screen.fill((0, 0, 0))
+        title_surface.set_alpha(alpha)
+        image.set_alpha(alpha)
+        screen.blit(title_surface, title_rect)
+        screen.blit(image, ufo_rect)
+        pygame.display.flip()
+        pygame.time.delay(30)
+
+    # Main loop for title screen
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            # check for key enter press
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+
+                # exits loop to go to next screen
+                running = False
+
+    # Fade-out effect
+    for alpha in range(255, -1, -5):
+        screen.fill((0, 0, 0))
+        title_surface.set_alpha(alpha)
+        image.set_alpha(alpha)
+        screen.blit(title_surface, title_rect)
+        screen.blit(image, ufo_rect)
+        pygame.display.flip()
+        pygame.time.delay(30)
+
+
 # shows welcome screen
 def show_welcome_screen(screen, screen_width, screen_height):
+    pygame.font.init()
+
     font = pygame.font.Font(None, 50)
 
     # load the main alien image
@@ -374,14 +432,20 @@ def fade_out_text(screen, text_surface, alien_image, alien_image_rect):
     # apply fade-out effect
     for alpha in range(255, -1, -5):
         text_surface.set_alpha(alpha)
-        alien_image.set_alpha(alpha)  # set the same alpha to the alien image
+
+        # Only set alpha for alien_image if it exists
+        if alien_image is not None:
+            alien_image.set_alpha(alpha)
 
         # fill the screen with black to reset the background
         screen.fill((0, 0, 0))
 
-        # redraw the text and image at their respective positions
+        # redraw the text
         screen.blit(text_surface, text_rect)
-        screen.blit(alien_image, alien_image_rect)
+
+        # Only draw the alien image if it exists
+        if alien_image is not None and alien_image_rect is not None:
+            screen.blit(alien_image, alien_image_rect)
 
         pygame.display.update()
         time.sleep(0.02)
