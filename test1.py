@@ -5,34 +5,34 @@ import random
 
 
 def main():
-    # initialise pygame
+    # Initialise pygame
     pygame.init()
 
-    # define fps
+    # Define fps
     clock = pygame.time.Clock()
     fps = 60
 
-    # define game variables
+    # Define game variables
     rows = 4
     cols = 8
-    alien_cooldown = 500  # bullet cooldown in milliseconds
+    alien_cooldown = 800  # Bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
-    # define colors
+    # Define colors
     red = (255, 0, 0)
     green = (0, 255, 0)
     white = (255, 255, 255)
 
-    # window dimensions
+    # Window dimensions
     screen_width = 900
     screen_height = 900
 
     screen = pygame.display.set_mode((screen_width, screen_height))
 
-    # set game title
+    # Set game title
     pygame.display.set_caption("Space Game")
 
-    # background image
+    # Background image
     bg = pygame.image.load("assets/space.jpeg")
 
     class Spaceship(pygame.sprite.Sprite):
@@ -117,6 +117,9 @@ def main():
     spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
     spaceship_group.add(spaceship)
 
+    # Show welcome screen before starting the game
+    show_welcome_screen(screen, screen_width, screen_height)
+
     run = True
     game_over = False
 
@@ -148,13 +151,14 @@ def main():
                 if hit_aliens:
                     bullet.kill()
 
-            hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True, pygame.sprite.collide_mask)
+            hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True,
+                                                        pygame.sprite.collide_mask)
 
             if hit_spaceship:
                 spaceship.health_remaining -= len(hit_spaceship)
 
             if not alien_group:
-                game2(screen, screen_width, screen_height)
+                win_message_1(screen, screen_width, screen_height)
 
             if spaceship.health_remaining <= 0:
                 game_over = True
@@ -175,31 +179,89 @@ def main():
     pygame.quit()
 
 
+def show_welcome_screen(screen, screen_width, screen_height):
+    font = pygame.font.Font(None, 50)
+
+    # Updated welcome message text
+    text_surface = font.render("You have encountered Alien bandits. Defeat them!", True,
+                               (255, 255, 255))
+
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+
+    # Fade-in effect
+    alpha_value = 0
+
+    while alpha_value < 255:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                fade_out_text(screen, text_surface)
+                return
+
+        screen.fill((0, 0, 0))
+
+        text_surface.set_alpha(alpha_value)
+        screen.blit(text_surface, text_rect)
+
+        alpha_value += 5
+        if alpha_value > 255:
+            alpha_value = 255
+
+        pygame.display.update()
+        time.sleep(0.03)
+
+        # Wait for Enter key to start fading out
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                fade_out_text(screen, text_surface)
+                return
+
+        screen.fill((0, 0, 0))
+        screen.blit(text_surface, text_rect)
+
+        pygame.display.update()
+
+
+def fade_out_text(screen, text_surface):
+    for alpha in range(255, -1, -5):
+        text_surface.set_alpha(alpha)
+
+        screen.fill((0, 0, 0))
+        screen.blit(text_surface, (text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))))
+
+        pygame.display.update()
+        time.sleep(0.02)
+
+
 def game_bg(screen, bg):
     screen.blit(bg, (0, 0))
 
 
-def create_aliens(row, col, alien_group, aliens):
-    for row in range(row):
-        for col in range(col):
+def create_aliens(rows, cols, alien_group, aliens):
+    for row in range(rows):
+        for col in range(cols):
             alien = aliens(100 + col * 100, 200 + row * 70)
             alien_group.add(alien)
 
 
-def game2(screen, screen_width, screen_height):
+def win_message_1(screen, screen_width, screen_height):
     font = pygame.font.Font(None, 74)
-
-    text_surface = font.render("Welcome to Another Planet", True, (255, 255, 255))
-
+    text_surface = font.render("Victory! You can proceed...", True, (255, 255, 255))
     text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
 
     screen.fill((0, 0, 0))
-
     screen.blit(text_surface, text_rect)
 
     pygame.display.update()
-
-    time.sleep(3)
+    time.sleep(2)
 
 
 if __name__ == "__main__":

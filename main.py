@@ -180,6 +180,9 @@ def main():
     spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
     spaceship_group.add(spaceship)
 
+    # Show welcome screen before starting the game
+    show_welcome_screen(screen, screen_width, screen_height)
+
     # game status
     run = True
     game_over = False
@@ -290,6 +293,70 @@ def create_aliens(rows, cols, alien_group, aliens):
         for col in range(cols):
             alien = aliens(100 + col * 100, 200 + row * 70)
             alien_group.add(alien)
+
+
+# shows welcome screen
+def show_welcome_screen(screen, screen_width, screen_height):
+    font = pygame.font.Font(None, 50)
+
+    # Updated welcome message text
+    text_surface = font.render("You have encountered Alien bandits. Defeat them!", True,
+                               (255, 255, 255))
+
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+
+    # Fade-in effect
+    alpha_value = 0
+
+    while alpha_value < 255:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                fade_out_text(screen, text_surface)
+                return
+
+        screen.fill((0, 0, 0))
+
+        text_surface.set_alpha(alpha_value)
+        screen.blit(text_surface, text_rect)
+
+        alpha_value += 5
+        if alpha_value > 255:
+            alpha_value = 255
+
+        pygame.display.update()
+        time.sleep(0.03)
+
+    # Wait for Enter key to start fading out
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                fade_out_text(screen, text_surface)
+                return
+
+        screen.fill((0, 0, 0))
+        screen.blit(text_surface, text_rect)
+
+        pygame.display.update()
+
+
+# to fade out text
+def fade_out_text(screen, text_surface):
+    for alpha in range(255, -1, -5):
+        text_surface.set_alpha(alpha)
+
+        screen.fill((0, 0, 0))
+        screen.blit(text_surface, (text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))))
+
+        pygame.display.update()
+        time.sleep(0.02)
 
 
 # to proceed to the next level
