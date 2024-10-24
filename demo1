@@ -59,13 +59,23 @@ def main():
                 bullet_group.add(bullet)
                 self.last_shot = time_now
 
-            # Draw pixelated health bar at the top of the screen
-            pixel_size = 10  # Size of each pixel in the health bar
-            for i in range(self.health_start):
-                if i < self.health_remaining:
-                    pygame.draw.rect(screen, green, (i * pixel_size + 10, 10, pixel_size - 2, pixel_size - 2))
-                else:
-                    pygame.draw.rect(screen, red, (i * pixel_size + 10, 10, pixel_size - 2, pixel_size - 2))
+            # Draw health bar below the spaceship with increased size
+            health_bar_width = self.rect.width * 1.5  # Increase width for better visibility
+            health_bar_height = 20  # Increased height for a more prominent look
+            
+            # Draw background for health bar (red)
+            pygame.draw.rect(screen, red, (self.rect.x - (health_bar_width - self.rect.width) / 2,
+                                             self.rect.bottom + 10,
+                                             health_bar_width,
+                                             health_bar_height))
+            
+            # Draw remaining health (green)
+            if self.health_remaining > 0:
+                pygame.draw.rect(screen, green,
+                                 (self.rect.x - (health_bar_width - self.rect.width) / 2,
+                                  self.rect.bottom + 10,
+                                  int(health_bar_width * (self.health_remaining / self.health_start)),
+                                  health_bar_height))
 
     class Bullets(pygame.sprite.Sprite):
         def __init__(self, x, y):
@@ -160,7 +170,7 @@ def main():
             hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
             
             if hit_spaceship:
-                spaceship.health_remaining -= len(hit_spaceship) # Reduce health based on hits
+                spaceship.health_remaining -= len(hit_spaceship) * 1 # Reduce health based on hits; reduced damage to just -1 per hit.
 
                 # Check for game over condition after taking damage
                 if spaceship.health_remaining <= 0:
