@@ -16,7 +16,7 @@ def main():
     # define game variables
     rows = 4
     cols = 8
-    alien_cooldown = 500  # bullet cooldown in milliseconds
+    alien_cooldown = 800  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
     # define colors
@@ -242,7 +242,7 @@ def main():
 
             # Check if all aliens are destroyed to advance levels
             if not alien_group:
-                game2()
+                win_message_1(screen, screen_width, screen_height)
 
             # Check for game over condition
             if spaceship.health_remaining <= 0:
@@ -285,15 +285,27 @@ def game_bg(screen, bg):
 
 
 # to create aliens
-def create_aliens(row, col, alien_group, aliens):
-    for row in range(row):
-        for col in range(col):
+def create_aliens(rows, cols, alien_group, aliens):
+    for row in range(rows):
+        for col in range(cols):
             alien = aliens(100 + col * 100, 200 + row * 70)
             alien_group.add(alien)
 
 
 # to proceed to the next level
-def game2():
+def win_message_1(screen, screen_width, screen_height):
+
+    # renders text and shows win message after first level
+    font = pygame.font.Font(None, 74)
+    text_surface = font.render("Victory! You can proceed...", True, (255, 255, 255))
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+
+    screen.fill((0, 0, 0))
+    screen.blit(text_surface, text_rect)
+
+    pygame.display.update()
+    time.sleep(2)
+
     exit()
 
 
