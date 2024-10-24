@@ -2,6 +2,8 @@ import pygame
 from pygame.locals import *
 import time
 import random
+import subprocess
+import sys
 
 
 # noinspection PyTypeChecker
@@ -16,7 +18,7 @@ def main():
     # define game variables
     rows = 4
     cols = 8
-    alien_cooldown = 800  # bullet cooldown in milliseconds
+    alien_cooldown = 10000  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
     # define colors
@@ -63,7 +65,7 @@ def main():
             speed = 8
 
             # set cooldown
-            cooldown = 450
+            cooldown = 0
 
             # get keypress
             key = pygame.key.get_pressed()
@@ -463,10 +465,11 @@ def win_message_1(screen, screen_width, screen_height):
         screen.blit(gif_frames[gif_index], gif_rect)
 
         pygame.display.update()
-        time.sleep(0.02)
+        time.sleep(0.01)
 
-    # exit the game after fading out
-    exit()
+    # start maze after fading out
+    subprocess.run(["python", "maze.py"])
+    sys.exit()
 
 
 if __name__ == "__main__":

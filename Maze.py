@@ -1,5 +1,6 @@
 import pygame
 import random
+import subprocess
 
 # Initialize Pygame
 pygame.init()
