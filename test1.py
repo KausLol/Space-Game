@@ -5,37 +5,37 @@ import random
 
 
 def main():
-    # Initialise pygame
+    # initialise pygame
     pygame.init()
 
-    # Define fps
+    # define fps
     clock = pygame.time.Clock()
     fps = 60
 
-    # Define game variables
+    # define game variables
     rows = 4
     cols = 8
     alien_cooldown = 500  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
-    # Define colors
+    # define colors
     red = (255, 0, 0)
     green = (0, 255, 0)
     white = (255, 255, 255)
 
-    # Window dimensions
+    # window dimensions
     screen_width = 900
     screen_height = 900
 
     screen = pygame.display.set_mode((screen_width, screen_height))
 
-    # Set game title
+    # set game title
     pygame.display.set_caption("Space Game")
 
-    # Background image
+    # background image
     bg = pygame.image.load("assets/space.jpeg")
 
-    # Create a spaceship object
+    # create a spaceship object
     class Spaceship(pygame.sprite.Sprite):
         def __init__(self, x, y, health):
             pygame.sprite.Sprite.__init__(self)
@@ -61,7 +61,7 @@ def main():
                 bullet_group.add(bullet)
                 self.last_shot = time_now
 
-            # Draw health bar
+            # draw health bar
             pygame.draw.rect(
                 screen, red, (self.rect.x, (self.rect.bottom + 10), self.rect.width, 10)
             )
@@ -184,7 +184,7 @@ def main():
             if not alien_group:
                 level_number += 1
                 rows += level_number - 1  # Increase rows for next level
-                create_aliens(rows + level_number - 1, cols)
+                game2()
 
             # Check for game over condition
             if spaceship.health_remaining <= 0:
@@ -207,30 +207,35 @@ def game_bg(screen, bg):
     screen.blit(bg, (0, 0))
 
 
+def game2():
+    exit()
+
+
 def end_screen(screen):
     clock.tick(60)
 
     # Load the spaceship image for the end screen animation.
-    ship_image_path = "assets/spaceship.png"
-    ship_image = pygame.image.load(ship_image_path).convert_alpha()
-    ship_rect = ship_image.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
-    font = pygame.font.Font(None, 74)
-    text_surface = font.render("byebye", True, (255, 255, 255))
-    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 + 100))
 
-    ship_y_velocity = -5
-    while ship_rect.bottom > -50:
-        screen.fill((0, 0, 0))
-        ship_rect.y += ship_y_velocity
-        screen.blit(ship_image, ship_rect)
-        screen.blit(text_surface, text_rect)
-        pygame.display.flip()
-        clock.tick(60)
+ship_image_path = "assets/spaceship.png"
+ship_image = pygame.image.load(ship_image_path).convert_alpha()
+ship_rect = ship_image.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
-    time.sleep(2)
-    exit()
+font = pygame.font.Font(None, 74)
+text_surface = font.render("byebye", True, (255, 255, 255))
+text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 + 100))
 
+ship_y_velocity = -5
+while ship_rect.bottom > -50:
+    screen.fill((0, 0, 0))
+    ship_rect.y += ship_y_velocity
+    screen.blit(ship_image, ship_rect)
+    screen.blit(text_surface, text_rect)
+    pygame.display.flip()
+    clock.tick(60)
+
+time.sleep(2)
+exit()
 
 if __name__ == "__main__":
     main()
