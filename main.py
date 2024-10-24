@@ -299,13 +299,27 @@ def create_aliens(rows, cols, alien_group, aliens):
 def show_welcome_screen(screen, screen_width, screen_height):
     font = pygame.font.Font(None, 50)
 
-    # Updated welcome message text
-    text_surface = font.render("You have encountered Alien bandits. Defeat them!", True,
-                               (255, 255, 255))
+    # load the main alien image
+    alien_image = pygame.image.load("assets/main_alien.png")
 
-    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+    # define padding between text and image
+    padding = 50  # 50 pixels of space between the text and the image
 
-    # Fade-in effect
+    # define the upward shift
+    upward_shift = 100
+
+    # position the alien image below the text with padding and upward shift
+    alien_image_rect = alien_image.get_rect(
+        center=(screen_width // 2, (screen_height // 2) + 100 + padding - upward_shift)
+    )
+
+    # updated welcome message text
+    text_surface = font.render("You have encountered Alien bandits. Defeat them!", True, (255, 255, 255))
+    text_rect = text_surface.get_rect(
+        center=(screen_width // 2, (screen_height // 2) - upward_shift)
+    )
+
+    # fade-in effect
     alpha_value = 0
 
     while alpha_value < 255:
@@ -315,13 +329,15 @@ def show_welcome_screen(screen, screen_width, screen_height):
                 exit()
 
             if event.type == KEYDOWN and event.key == K_RETURN:
-                fade_out_text(screen, text_surface)
+                fade_out_text(screen, text_surface, alien_image, alien_image_rect)
                 return
 
         screen.fill((0, 0, 0))
 
         text_surface.set_alpha(alpha_value)
         screen.blit(text_surface, text_rect)
+        alien_image.set_alpha(alpha_value)  # fade-in the alien image as well
+        screen.blit(alien_image, alien_image_rect)  # display the alien image with padding
 
         alpha_value += 5
         if alpha_value > 255:
@@ -330,7 +346,7 @@ def show_welcome_screen(screen, screen_width, screen_height):
         pygame.display.update()
         time.sleep(0.03)
 
-    # Wait for Enter key to start fading out
+    # wait for Enter key to start fading out
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -338,22 +354,32 @@ def show_welcome_screen(screen, screen_width, screen_height):
                 exit()
 
             if event.type == KEYDOWN and event.key == K_RETURN:
-                fade_out_text(screen, text_surface)
+                fade_out_text(screen, text_surface, alien_image, alien_image_rect)
                 return
 
         screen.fill((0, 0, 0))
         screen.blit(text_surface, text_rect)
+        screen.blit(alien_image, alien_image_rect)  # display the alien image with padding
 
         pygame.display.update()
 
 
 # to fade out text
-def fade_out_text(screen, text_surface):
+def fade_out_text(screen, text_surface, alien_image, alien_image_rect):
+    # get the text's rectangle for proper positioning
+    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 - 100))
+
+    # apply fade-out effect
     for alpha in range(255, -1, -5):
         text_surface.set_alpha(alpha)
+        alien_image.set_alpha(alpha)  # set the same alpha to the alien image
 
+        # fill the screen with black to reset the background
         screen.fill((0, 0, 0))
-        screen.blit(text_surface, (text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))))
+
+        # redraw the text and image at their respective positions
+        screen.blit(text_surface, text_rect)
+        screen.blit(alien_image, alien_image_rect)
 
         pygame.display.update()
         time.sleep(0.02)
@@ -361,18 +387,85 @@ def fade_out_text(screen, text_surface):
 
 # to proceed to the next level
 def win_message_1(screen, screen_width, screen_height):
+    # load GIF frames (assuming you have frames saved as individual images)
+    gif_frames = [pygame.image.load(f"assets/planet1_gif/frame_{i}_delay-0.17s.png") for i in range(59)]
+    gif_index = 0
+    gif_timer = pygame.time.get_ticks()
 
-    # renders text and shows win message after first level
-    font = pygame.font.Font(None, 74)
-    text_surface = font.render("Victory! You can proceed...", True, (255, 255, 255))
-    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+    # load victory message text
+    font = pygame.font.Font(None, 50)
+    text_surface = font.render("Victory! You can proceed to Planet Solaris...", True, (255, 255, 255))
 
-    screen.fill((0, 0, 0))
-    screen.blit(text_surface, text_rect)
+    # get the position for the text
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2 - 100))
 
-    pygame.display.update()
-    time.sleep(2)
+    # set up the position for the GIF (below the text)
+    gif_rect = gif_frames[0].get_rect(center=(screen_width // 2, screen_height // 2 + 50))
 
+    # fade-in effect
+    alpha_value = 0
+    while alpha_value < 255:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+        # fill the screen with black
+        screen.fill((0, 0, 0))
+
+        # set alpha for the text and gif
+        text_surface.set_alpha(alpha_value)
+        gif_frames[gif_index].set_alpha(alpha_value)
+
+        # draw text and gif on the screen
+        screen.blit(text_surface, text_rect)
+        screen.blit(gif_frames[gif_index], gif_rect)
+
+        # update alpha value
+        alpha_value += 5
+        pygame.display.update()
+        time.sleep(0.03)
+
+    # main display loop for the GIF and message
+    display_duration = 2  # Display duration in seconds
+    start_time = pygame.time.get_ticks()
+    while pygame.time.get_ticks() - start_time < display_duration * 1000:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+        # fill the screen with black
+        screen.fill((0, 0, 0))
+
+        # draw the text and current frame of the GIF
+        screen.blit(text_surface, text_rect)
+        screen.blit(gif_frames[gif_index], gif_rect)
+
+        # update GIF frame every 100 ms
+        if pygame.time.get_ticks() - gif_timer > 100:
+            gif_index = (gif_index + 1) % len(gif_frames)
+            gif_timer = pygame.time.get_ticks()
+
+        pygame.display.update()
+
+    # fade-out effect
+    for alpha in range(255, -1, -5):
+        # set the fading alpha for both text and GIF
+        text_surface.set_alpha(alpha)
+        gif_frames[gif_index].set_alpha(alpha)
+
+        # fill the screen with black
+        screen.fill((0, 0, 0))
+
+        # redraw the text and gif with decreasing alpha
+        screen.blit(text_surface, text_rect)
+        screen.blit(gif_frames[gif_index], gif_rect)
+
+        pygame.display.update()
+        time.sleep(0.02)
+
+    # exit the game after fading out
     exit()
 
 

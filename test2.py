@@ -1,472 +1,183 @@
 import pygame
-from pygame.locals import *
-import time
 import random
 
+# Initialize Pygame
+pygame.init()
 
-# noinspection PyTypeChecker
+# Constants
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 900
+CELL_SIZE = 30
+MAZE_WIDTH = SCREEN_WIDTH // CELL_SIZE
+MAZE_HEIGHT = SCREEN_HEIGHT // CELL_SIZE
+BLACK = (0, 0, 0)
+
+# Load images
+spaceship_img = pygame.image.load('assets/spaceship_small.png')
+spaceship_img = pygame.transform.scale(spaceship_img, (CELL_SIZE, CELL_SIZE))
+planet_img = pygame.image.load('assets/planet2_small(1).png')
+planet_img = pygame.transform.scale(planet_img, (CELL_SIZE, CELL_SIZE))
+
+# Load asteroid images
+asteroid_images = [pygame.transform.scale(pygame.image.load(f'assets/asteroids_small/{i}.png'), (CELL_SIZE, CELL_SIZE))
+                   for i in range(1, 6)]  # Assuming 5 asteroid images named asteroid1.png, asteroid2.png, etc.
+
+
+# Create Maze (Asteroid Belt)
+def create_maze():
+    maze = [[0] * MAZE_WIDTH for _ in range(MAZE_HEIGHT)]
+    asteroid_positions = {}  # Dictionary to store positions of asteroids and their corresponding images
+
+    # Randomly add obstacles, but keep clear zones around player and destination
+    for _ in range(300):  # Adjust the number of asteroids as needed
+        x = random.randint(0, MAZE_WIDTH - 1)
+        y = random.randint(0, MAZE_HEIGHT - 1)
+
+        # Ensure the starting area (top-left) and the goal area (bottom-right) are clear
+        if not ((0 <= x <= 5 and 0 <= y <= 5) or (x >= MAZE_WIDTH - 6 and y >= MAZE_HEIGHT - 6)):
+            maze[y][x] = 1  # Place an asteroid
+            asteroid_positions[(x, y)] = random.choice(asteroid_images)  # Assign a random image to this position
+
+    # Set the planet (goal) in the bottom-right corner with buffer space
+    planet_x, planet_y = MAZE_WIDTH - 1, MAZE_HEIGHT - 1
+    maze[planet_y][planet_x] = 2  # Place the planet
+
+    # Clear a larger buffer zone around the planet
+    for dx in range(-2, 3):  # -2 to 2 for x-axis (5 cells wide)
+        for dy in range(-2, 3):  # -2 to 2 for y-axis (5 cells high)
+            if 0 <= planet_x + dx < MAZE_WIDTH and 0 <= planet_y + dy < MAZE_HEIGHT:
+                if dx == 0 and dy == 0:  # Skip the planet's position
+                    continue
+                if maze[planet_y + dy][planet_x + dx] == 1:  # If there is an asteroid here, clear it
+                    maze[planet_y + dy][planet_x + dx] = 0
+
+    # Clear a buffer zone around the player's starting position
+    player_x, player_y = 0, 0
+    for dx in range(-2, 3):  # -2 to 2 for x-axis (5 cells wide)
+        for dy in range(-2, 3):  # -2 to 2 for y-axis (5 cells high)
+            if 0 <= player_x + dx < MAZE_WIDTH and 0 <= player_y + dy < MAZE_HEIGHT:
+                if dx == 0 and dy == 0:  # Skip the player's position
+                    continue
+                if maze[player_y + dy][player_x + dx] == 1:  # If there is an asteroid here, clear it
+                    maze[player_y + dy][player_x + dx] = 0
+
+    return maze, asteroid_positions
+
+
+# Draw Maze
+def draw_maze(screen, maze, asteroid_positions):
+    for y in range(MAZE_HEIGHT):
+        for x in range(MAZE_WIDTH):
+            if maze[y][x] == 1:
+                screen.blit(asteroid_positions[(x, y)], (x * CELL_SIZE, y * CELL_SIZE))  # Draw assigned asteroid image
+            elif maze[y][x] == 2:
+                # Center the planet in the cell
+                screen.blit(planet_img, (x * CELL_SIZE + (CELL_SIZE - 50) // 2, y * CELL_SIZE + (CELL_SIZE - 50) // 2))
+
+
+# Player class
+class Player:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+
+    def move(self, dx, dy, maze):
+        new_x = self.x + dx
+        new_y = self.y + dy
+        if 0 <= new_x < MAZE_WIDTH and 0 <= new_y < MAZE_HEIGHT and maze[new_y][new_x] != 1:
+            self.x = new_x
+            self.y = new_y
+
+    def draw(self, screen):
+        screen.blit(spaceship_img, (self.x * CELL_SIZE, self.y * CELL_SIZE))
+
+
+# Timer class
+class Timer:
+    def __init__(self, countdown_time):
+        self.font = pygame.font.SysFont(None, 36)
+        self.start_time = pygame.time.get_ticks()
+        self.countdown_time = countdown_time  # Time in seconds
+
+    def get_time(self):
+        elapsed_time = pygame.time.get_ticks() - self.start_time
+        remaining_time = self.countdown_time - elapsed_time // 1000
+        if remaining_time < 0:
+            remaining_time = 0
+        minutes = remaining_time // 60
+        seconds = remaining_time % 60
+        return f"Fuel runs out in: {minutes:01}:{seconds:02}"
+
+    def draw(self, screen):
+        time_text = self.font.render(self.get_time(), True, (255, 255, 255))
+        screen.blit(time_text, (10, SCREEN_HEIGHT - 40))
+
+    def is_time_up(self):
+        elapsed_time = pygame.time.get_ticks() - self.start_time
+        remaining_time = self.countdown_time - elapsed_time // 1000
+        return remaining_time <= 0
+
+
+# Main function
 def main():
-    # initialise pygame
-    pygame.init()
-
-    # define fps
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    font = pygame.font.SysFont(None, 36)
+    pygame.display.set_caption("Asteroid Navigation Game")
     clock = pygame.time.Clock()
-    fps = 60
 
-    # define game variables
-    rows = 4
-    cols = 8
-    alien_cooldown = 800  # bullet cooldown in milliseconds
-    last_alien_shot = pygame.time.get_ticks()
+    maze, asteroid_positions = create_maze()  # Get both maze and asteroid positions with images
 
-    # define colors
-    red = (255, 0, 0)
-    green = (0, 255, 0)
-    white = (255, 255, 255)
+    player = Player()
 
-    # window dimensions
-    screen_width = 900
-    screen_height = 900
+    countdown_time = 20  # Countdown time set to 30 seconds
+    timer = Timer(countdown_time)
 
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    running = True
+    won = False
 
-    # set game title
-    pygame.display.set_caption("Space Game")
-
-    # background image
-    bg = pygame.image.load("assets/space.jpeg")
-
-    # create a spaceship object
-    # noinspection PyShadowingNames,PyTypeChecker,PyAttributeOutsideInit
-    class Spaceship(pygame.sprite.Sprite):
-        def __init__(self, x, y, health):
-
-            # initialise spaceship as a sprite
-            pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load("assets/spaceship.png")
-
-            # convert sprite into a rectangle object
-            self.rect = self.image.get_rect()
-
-            # position it in center
-            self.rect.center = [x, y]
-
-            # spaceship health
-            self.health_start = health
-            self.health_remaining = health
-
-            # notes when was last bullet created (to prevent bullet spam)
-            self.last_shot = pygame.time.get_ticks()
-
-        def update(self):
-            # set movement speed
-            speed = 8
-
-            # set cooldown
-            cooldown = 450
-
-            # get keypress
-            key = pygame.key.get_pressed()
-            if key[pygame.K_LEFT] and self.rect.left > 0:
-                self.rect.x -= speed
-            if key[pygame.K_RIGHT] and self.rect.right < screen_width:
-                self.rect.x += speed
-
-            # record current time to prevent bullet spam
-            time_now = pygame.time.get_ticks()
-
-            # shooting functionality
-            if key[pygame.K_SPACE] and time_now - self.last_shot > cooldown:
-                bullet = Bullets(self.rect.centerx, self.rect.top)
-                bullet_group.add(bullet)
-
-                # restarts cooldown timer
-                self.last_shot = time_now
-
-            # adjusts spaceship hit-box (update mask)
-            self.mask = pygame.mask.from_surface(self.image)
-
-            # draw health bar
-            pygame.draw.rect(
-                screen, red, (self.rect.x, (self.rect.bottom + 10), self.rect.width, 10)
-            )
-            if self.health_remaining > 0:
-                pygame.draw.rect(
-                    screen,
-                    green,
-                    (
-                        self.rect.x,
-                        (self.rect.bottom + 10),
-                        int(
-                            self.rect.width
-                            * (self.health_remaining / self.health_start)
-                        ),
-                        10,
-                    ),
-                )
-
-    # create bullets as objects
-    class Bullets(pygame.sprite.Sprite):
-        def __init__(self, x, y):
-
-            # initialise bullets as sprites
-            pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load("assets/bullet.png")
-
-            # convert bullet into a rectangle object
-            self.rect = self.image.get_rect()
-            self.rect.center = [x, y]
-
-        def update(self):
-            self.rect.y -= 5
-
-            # deletes bullets from game if they leave the screen
-            if self.rect.bottom < 0:
-                self.kill()
-
-    # create alien as an object
-    class Aliens(pygame.sprite.Sprite):
-        def __init__(self, x, y):
-
-            # initialise alien as a sprite
-            pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load(
-                "assets/aliens/" + str(random.randint(0, 4)) + ".png"
-            )
-
-            # set alien as a rectangle object
-            self.rect = self.image.get_rect()
-            self.rect.center = [x, y]
-
-            # movement of aliens
-            self.move_counter = 0
-            self.move_direction = 1
-
-        def update(self):
-            self.rect.x += self.move_direction
-            self.move_counter += 1
-            if abs(self.move_counter) > 75:
-                self.move_direction *= -1
-                self.move_counter *= self.move_direction
-
-    # create aliens bullets as objects
-    class Alien_Bullets(pygame.sprite.Sprite):
-        def __init__(self, x, y):
-
-            # initialise alien bullets as sprites
-            pygame.sprite.Sprite.__init__(self)
-            self.image = pygame.image.load("assets/alien_bullet.png")
-
-            # convert alien bullets into rectangle objects
-            self.rect = self.image.get_rect()
-            self.rect.center = [x, y]
-
-        def update(self):
-            self.rect.y += 2
-
-            # deletes bullets when they leave the screen
-            if self.rect.top > screen_height:
-                self.kill()
-
-    # create sprite groups
-    spaceship_group = pygame.sprite.Group()
-    bullet_group = pygame.sprite.Group()
-    alien_group = pygame.sprite.Group()
-    alien_bullet_group = pygame.sprite.Group()
-
-    create_aliens(rows, cols, alien_group, Aliens)
-
-    # create player with initial health as 3
-    spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
-    spaceship_group.add(spaceship)
-
-    # Show welcome screen before starting the game
-    show_welcome_screen(screen, screen_width, screen_height)
-
-    # game status
-    run = True
-    game_over = False
-
-    while run:
-
-        # sets fps
-        clock.tick(fps)
-
-        # draws background
-        game_bg(screen, bg)
-
-        # create random alien bullets
-        # records current time
-        time_now = pygame.time.get_ticks()
-
-        # shoot bullets
-        if time_now - last_alien_shot > alien_cooldown:
-            if len(alien_group) > 0:
-
-                # pick a random alien
-                attacking_alien = random.choice(alien_group.sprites())
-
-                alien_bullet = Alien_Bullets(
-                    attacking_alien.rect.centerx, attacking_alien.rect.bottom
-                )
-                alien_bullet_group.add(alien_bullet)
-
-                # reset cooldown
-                last_alien_shot = time_now
-
-        # event handlers
+    while running:
         for event in pygame.event.get():
-            if event.type == QUIT:
-                run = False
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    player.move(0, -1, maze)
+                elif event.key == pygame.K_DOWN:
+                    player.move(0, 1, maze)
+                elif event.key == pygame.K_LEFT:
+                    player.move(-1, 0, maze)
+                elif event.key == pygame.K_RIGHT:
+                    player.move(1, 0, maze)
 
-        # updates sprite groups
-        if not game_over:
-            spaceship.update()
-            bullet_group.update()
-            alien_group.update()
-            alien_bullet_group.update()
+        screen.fill(BLACK)
+        draw_maze(screen, maze, asteroid_positions)  # Pass both maze and asteroid positions to draw function
 
-            # Check for collisions between bullets and aliens
-            for bullet in bullet_group:
-                hit_aliens = pygame.sprite.spritecollide(bullet, alien_group, True)
-                if hit_aliens:
-                    bullet.kill()  # Remove bullet on hit
+        player.draw(screen)
+        timer.draw(screen)
 
-            # Check for collisions between alien bullets and the spaceship
-            hit_spaceship = pygame.sprite.spritecollide(
-                spaceship, alien_bullet_group, True, pygame.sprite.collide_mask
-            )
+        if maze[player.y][player.x] == 2:
+            won = True
+            running = False
 
-            # reduce health based on hits
-            if hit_spaceship:
-                spaceship.health_remaining -= len(
-                    hit_spaceship
-                )
+        if timer.is_time_up():
+            running = False
 
-            # Check if all aliens are destroyed to advance levels
-            if not alien_group:
-                win_message_1(screen, screen_width, screen_height)
+        pygame.display.flip()
+        clock.tick(20)
 
-            # Check for game over condition
-            if spaceship.health_remaining <= 0:
-                game_over = True
+    screen.fill(BLACK)
+    if won:
+        time_text = font.render('You Reached the Planet!', True, (255, 255, 255))
+    else:
+        time_text = font.render('Time is up!', True, (255, 255, 255))
 
-        else:
-            # Display a message when game is over
-            font = pygame.font.Font(
-                None, 74
-            )
+    screen.blit(time_text,
+                (SCREEN_WIDTH // 2 - time_text.get_width() // 2,
+                 SCREEN_HEIGHT // 2 - time_text.get_height() // 2))
 
-            # renders the text
-            text_surface = font.render(
-                "Skill Issue...", True, white
-            )
-
-            # Center the text on the screen.
-            text_rect = text_surface.get_rect(
-                center=(screen_width // 2, screen_height // 2)
-            )
-
-            # draw text on screen
-            screen.blit(text_surface, text_rect)
-
-        # draw sprite groups
-        spaceship_group.draw(screen)
-        bullet_group.draw(screen)
-        alien_group.draw(screen)
-        alien_bullet_group.draw(screen)
-
-        # updates the game
-        pygame.display.update()
-
+    pygame.display.flip()
+    pygame.time.wait(2000)
     pygame.quit()
-
-
-# sets image as a game background
-def game_bg(screen, bg):
-    screen.blit(bg, (0, 0))
-
-
-# to create aliens
-def create_aliens(rows, cols, alien_group, aliens):
-    for row in range(rows):
-        for col in range(cols):
-            alien = aliens(100 + col * 100, 200 + row * 70)
-            alien_group.add(alien)
-
-
-# shows welcome screen
-def show_welcome_screen(screen, screen_width, screen_height):
-    font = pygame.font.Font(None, 50)
-
-    # Load the main alien image
-    alien_image = pygame.image.load("assets/main_alien.png")
-
-    # Define padding between text and image
-    padding = 50  # 50 pixels of space between the text and the image
-
-    # Define the upward shift
-    upward_shift = 100  # Move everything 100 pixels up
-
-    # Position the alien image below the text with padding and upward shift
-    alien_image_rect = alien_image.get_rect(
-        center=(screen_width // 2, (screen_height // 2) + 100 + padding - upward_shift)
-    )
-
-    # Updated welcome message text
-    text_surface = font.render("You have encountered Alien bandits. Defeat them!", True, (255, 255, 255))
-    text_rect = text_surface.get_rect(
-        center=(screen_width // 2, (screen_height // 2) - upward_shift)
-    )
-
-    # Fade-in effect
-    alpha_value = 0
-
-    while alpha_value < 255:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                exit()
-
-            if event.type == KEYDOWN and event.key == K_RETURN:
-                fade_out_text(screen, text_surface, alien_image, alien_image_rect)
-                return
-
-        screen.fill((0, 0, 0))
-
-        text_surface.set_alpha(alpha_value)
-        screen.blit(text_surface, text_rect)
-        alien_image.set_alpha(alpha_value)  # Fade-in the alien image as well
-        screen.blit(alien_image, alien_image_rect)  # Display the alien image with padding
-
-        alpha_value += 5
-        if alpha_value > 255:
-            alpha_value = 255
-
-        pygame.display.update()
-        time.sleep(0.03)
-
-    # Wait for Enter key to start fading out
-    while True:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                exit()
-
-            if event.type == KEYDOWN and event.key == K_RETURN:
-                fade_out_text(screen, text_surface, alien_image, alien_image_rect)
-                return
-
-        screen.fill((0, 0, 0))
-        screen.blit(text_surface, text_rect)
-        screen.blit(alien_image, alien_image_rect)  # Display the alien image with padding
-
-        pygame.display.update()
-
-
-# to fade out text
-def fade_out_text(screen, text_surface, alien_image, alien_image_rect):
-    # Get the text's rectangle for proper positioning
-    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 - 100))
-
-    # Apply fade-out effect
-    for alpha in range(255, -1, -5):
-        text_surface.set_alpha(alpha)
-        alien_image.set_alpha(alpha)  # Set the same alpha to the alien image
-
-        # Fill the screen with black to reset the background
-        screen.fill((0, 0, 0))
-
-        # Redraw the text and image at their respective positions
-        screen.blit(text_surface, text_rect)
-        screen.blit(alien_image, alien_image_rect)
-
-        pygame.display.update()
-        time.sleep(0.02)
-
-
-# to proceed to the next level
-def win_message_1(screen, screen_width, screen_height):
-    # Load GIF frames (assuming you have frames saved as individual images)
-    gif_frames = [pygame.image.load(f"assets/planet1_gif/frame_{i}_delay-0.17s.png") for i in range(59)]
-    gif_index = 0
-    gif_timer = pygame.time.get_ticks()
-
-    # Load victory message text
-    font = pygame.font.Font(None, 50)
-    text_surface = font.render("Victory! You can proceed to Planet Solaris...", True, (255, 255, 255))
-
-    # Get the position for the text
-    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2 - 100))
-
-    # Set up the position for the GIF (below the text)
-    gif_rect = gif_frames[0].get_rect(center=(screen_width // 2, screen_height // 2 + 50))
-
-    # Fade-in effect
-    alpha_value = 0
-    while alpha_value < 255:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                exit()
-
-        # Fill the screen with black
-        screen.fill((0, 0, 0))
-
-        # Set alpha for the text and gif
-        text_surface.set_alpha(alpha_value)
-        gif_frames[gif_index].set_alpha(alpha_value)
-
-        # Draw text and gif on the screen
-        screen.blit(text_surface, text_rect)
-        screen.blit(gif_frames[gif_index], gif_rect)
-
-        # Update alpha value
-        alpha_value += 5
-        pygame.display.update()
-        time.sleep(0.03)
-
-    # Main display loop for the GIF and message
-    display_duration = 2  # Display duration in seconds
-    start_time = pygame.time.get_ticks()
-    while pygame.time.get_ticks() - start_time < display_duration * 1000:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                exit()
-
-        # Fill the screen with black
-        screen.fill((0, 0, 0))
-
-        # Draw the text and current frame of the GIF
-        screen.blit(text_surface, text_rect)
-        screen.blit(gif_frames[gif_index], gif_rect)
-
-        # Update GIF frame every 100 ms
-        if pygame.time.get_ticks() - gif_timer > 100:
-            gif_index = (gif_index + 1) % len(gif_frames)
-            gif_timer = pygame.time.get_ticks()
-
-        pygame.display.update()
-
-    # Fade-out effect
-    for alpha in range(255, -1, -5):
-        # Set the fading alpha for both text and GIF
-        text_surface.set_alpha(alpha)
-        gif_frames[gif_index].set_alpha(alpha)
-
-        # Fill the screen with black
-        screen.fill((0, 0, 0))
-
-        # Redraw the text and gif with decreasing alpha
-        screen.blit(text_surface, text_rect)
-        screen.blit(gif_frames[gif_index], gif_rect)
-
-        pygame.display.update()
-        time.sleep(0.02)
-
-    # Exit the game after fading out
-    exit()
 
 
 if __name__ == "__main__":
