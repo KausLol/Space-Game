@@ -1,0 +1,121 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Constants
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 60
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+# Spaceship class
+class Spaceship(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50)
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and self.rect.left > 0:
+            self.rect.x -= 5
+        if keys[pygame.K_RIGHT] and self.rect.right < SCREEN_WIDTH:
+            self.rect.x += 5
+
+# Bullet class
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((5, 10))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+    def update(self):
+        self.rect.y -= 10
+        if self.rect.bottom < 0:
+            self.kill()
+
+# Enemy class
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randint(0, SCREEN_WIDTH - self.rect.width)
+        self.rect.y = random.randint(-100, -40)
+
+    def update(self):
+        self.rect.y += 5
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
+# Initialize screen and clock
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Space Shooting Game")
+clock = pygame.time.Clock()
+
+# Sprite groups
+all_sprites = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
+
+# Create player spaceship
+player = Spaceship()
+all_sprites.add(player)
+
+# Game loop variables
+running = True
+score = 0
+
+while running:
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                bullet = Bullet(player.rect.centerx, player.rect.top)
+                all_sprites.add(bullet)
+                bullets.add(bullet)
+
+    # Update sprites
+    all_sprites.update()
+
+    # Spawn enemies
+    if random.randint(1, 30) == 1:  # Adjust frequency of enemies appearing
+        enemy = Enemy()
+        all_sprites.add(enemy)
+        enemies.add(enemy)
+
+    # Check for bullet collisions with enemies
+    for bullet in bullets:
+        hits = pygame.sprite.spritecollide(bullet, enemies, True)
+        for hit in hits:
+            score += 1
+            bullet.kill()
+
+    # Draw everything
+    screen.fill(BLACK)
+    all_sprites.draw(screen)
+
+    # Display score
+    font = pygame.font.Font(None, 36)
+    text_surface = font.render(f'Score: {score}', True, WHITE)
+    screen.blit(text_surface, (10, 10))
+
+    # Refresh the screen and set FPS
+    pygame.display.flip()
+    clock.tick(FPS)
+
+pygame.quit()
