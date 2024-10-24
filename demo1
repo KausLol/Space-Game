@@ -20,6 +20,7 @@ def main():
     # define colors
     red = (255, 0, 0)
     green = (0, 255, 0)
+    white = (255, 255, 255)
 
     # window dimensions
     screen_width = 900
@@ -118,12 +119,14 @@ def main():
                 alien = Aliens(100 + col * 100, 100 + row * 70)
                 alien_group.add(alien)
 
-    create_aliens(rows + level_number - 1, cols) # Increase rows with level number
+    create_aliens(rows + level_number - 1, cols)
 
     spaceship = Spaceship(int(screen_width / 2), screen_height - 100, 3)
     spaceship_group.add(spaceship)
 
     run = True
+    game_over = False
+
     while run:
         clock.tick(fps)
         game_bg(screen, bg)
@@ -141,27 +144,41 @@ def main():
             if event.type == QUIT:
                 run = False
 
-        spaceship.update()
-        bullet_group.update()
-        alien_group.update()
-        alien_bullet_group.update()
+        if not game_over:
+            spaceship.update()
+            bullet_group.update()
+            alien_group.update()
+            alien_bullet_group.update()
 
-        # Check for collisions between bullets and aliens
-        for bullet in bullet_group:
-            hit_aliens = pygame.sprite.spritecollide(bullet, alien_group, True)
-            if hit_aliens:
-                bullet.kill() # Remove bullet on hit
+            # Check for collisions between bullets and aliens
+            for bullet in bullet_group:
+                hit_aliens = pygame.sprite.spritecollide(bullet, alien_group, True)
+                if hit_aliens:
+                    bullet.kill() # Remove bullet on hit
 
-        # Check for collisions between alien bullets and the spaceship
-        hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
-        if hit_spaceship:
-            spaceship.health_remaining -= len(hit_spaceship) # Reduce health based on hits
+            # Check for collisions between alien bullets and the spaceship
+            hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
+            if hit_spaceship:
+                spaceship.health_remaining -= len(hit_spaceship) # Reduce health based on hits
 
-        # Check if all aliens are destroyed to advance levels
-        if not alien_group:
-            level_number += 1
-            rows += level_number - 1 # Increase rows for next level
-            create_aliens(rows + level_number - 1, cols) # Create new aliens for the next level
+            # Check if all aliens are destroyed to advance levels
+            if not alien_group:
+                level_number += 1
+                rows += level_number - 1 # Increase rows for next level
+                create_aliens(rows + level_number - 1, cols) # Create new aliens for the next level
+            
+            # Check for game over condition
+            if spaceship.health_remaining <= 0:
+                game_over = True
+
+        else:
+            # Display "You Lost" message when game is over
+            font = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+            text_surface = font.render('You Lost', True, white)   # Render the text.
+            
+           # Center the text on the screen.
+           text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+           screen.blit(text_surface, text_rect)   # Draw the text on the screen.
 
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
