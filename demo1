@@ -160,9 +160,9 @@ def main():
             if hit_spaceship:
                 spaceship.health_remaining -= len(hit_spaceship) # Reduce health based on hits
 
-            # Check for game over condition
-            if spaceship.health_remaining <= 0:
-                game_over = True
+                # Check for game over condition after taking damage
+                if spaceship.health_remaining <= 0:
+                    game_over = True
 
         else:
            # Display "You Lost" message when game is over
