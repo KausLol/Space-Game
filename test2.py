@@ -16,7 +16,7 @@ def main():
     # define game variables
     rows = 4
     cols = 8
-    alien_cooldown = 10000  # bullet cooldown in milliseconds
+    alien_cooldown = 800  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
     # define colors
@@ -63,7 +63,7 @@ def main():
             speed = 8
 
             # set cooldown
-            cooldown = 0
+            cooldown = 450
 
             # get keypress
             key = pygame.key.get_pressed()
