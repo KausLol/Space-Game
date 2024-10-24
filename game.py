@@ -73,8 +73,7 @@ def main():
                         self.rect.x,
                         (self.rect.bottom + 10),
                         int(
-                            self.rect.width
-                            * (self.health_remaining / self.health_start)
+                            self.rect.width * (self.health_remaining / self.health_start)
                         ),
                         10,
                     ),
@@ -179,9 +178,7 @@ def main():
                 spaceship, alien_bullet_group, True
             )
             if hit_spaceship:
-                spaceship.health_remaining -= len(
-                    hit_spaceship
-                )  # Reduce health based on hits
+                spaceship.health_remaining -= len(hit_spaceship)  # Reduce health based on hits
 
             # Check if all aliens are destroyed to advance levels
             if not alien_group:
@@ -194,19 +191,7 @@ def main():
                 game_over = True
 
         else:
-            # Display "You Lost" message when game is over
-            font = pygame.font.Font(
-                None, 74
-            )  # Create a font object with a size of your choice.
-            text_surface = font.render(
-                "Skill Issue...", True, white
-            )  # Render the text.
-
-            # Center the text on the screen.
-            text_rect = text_surface.get_rect(
-                center=(screen_width // 2, screen_height // 2)
-            )
-            screen.blit(text_surface, text_rect)  # Draw the text on the screen.
+           end_screen(screen)
 
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
@@ -226,5 +211,29 @@ def game2():
     exit()
 
 
+def end_screen(screen):
+    clock.tick(60)  
+   
+   # Load the spaceship image for the end screen animation.
+   ship_image_path="assets/spaceship.png"
+   ship_image=pygame.image.load(ship_image_path).convert_alpha()
+   ship_rect=ship_image.get_rect(center=(screen.get_width()//2 ,screen.get_height()//2))
+    
+   font=pygame.font.Font(None ,74) 
+   text_surface=font.render("byebye", True,(255 ,255 ,255)) 
+   text_rect=text_surface.get_rect(center=(screen.get_width()//2 ,screen.get_height()//2 +100)) 
+
+   ship_y_velocity=-5  
+   while ship_rect.bottom > -50:  
+       screen.fill((0 ,0 ,0)) 
+       ship_rect.y+=ship_y_velocity 
+       screen.blit(ship_image ,ship_rect) 
+       screen.blit(text_surface ,text_rect) 
+       pygame.display.flip() 
+       clock.tick(60) 
+
+   time.sleep(2)  
+   exit()  
+
 if __name__ == "__main__":
-    main()
+     main()
