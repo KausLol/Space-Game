@@ -3,7 +3,6 @@ from pygame.locals import *
 import time
 import random
 
-
 def main():
     # initialise pygame
     pygame.init()
@@ -66,9 +65,9 @@ def main():
 
             # Draw background for health bar (red)
             pygame.draw.rect(screen, red, (self.rect.x - (health_bar_width - self.rect.width) / 2,
-                                           self.rect.bottom + 10,
-                                           health_bar_width,
-                                           health_bar_height))
+                                             self.rect.bottom + 10,
+                                             health_bar_width,
+                                             health_bar_height))
 
             # Draw remaining health (green)
             if self.health_remaining > 0:
@@ -161,7 +160,7 @@ def main():
             for bullet in bullet_group:
                 hit_aliens = pygame.sprite.spritecollide(bullet, alien_group, True)
                 if hit_aliens:
-                    bullet.kill()  # Remove bullet on hit
+                    bullet.kill() # Remove bullet on hit
 
                     # Check for victory condition after hitting aliens
                     if not alien_group:
@@ -171,34 +170,33 @@ def main():
             hit_spaceship = pygame.sprite.spritecollide(spaceship, alien_bullet_group, True)
 
             if hit_spaceship:
-                spaceship.health_remaining -= len(
-                    hit_spaceship) * 1  # Reduce health based on hits; reduced damage to just -1 per hit.
+                spaceship.health_remaining -= len(hit_spaceship) * 1 # Reduce health based on hits; reduced damage to just -1 per hit.
 
                 # Check for game over condition after taking damage
                 if spaceship.health_remaining <= 0:
                     game_over = True
 
         else:
-            # Display "You Lost" message when game is over
-            font_loss = pygame.font.Font(None, 74)  # Create a font object with a size of your choice.
-            text_surface_loss = font_loss.render('Skill issue', True, white)  # Render the text.
-            text_rect_loss = text_surface_loss.get_rect(center=(screen_width // 2, screen_height // 2))
-            screen.blit(text_surface_loss, text_rect_loss)  # Draw the text on the screen.
+           # Display "You Lost" message when game is over
+           font_loss = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+           text_surface_loss = font_loss.render('You Lost', True, white)   # Render the text.
+           text_rect_loss = text_surface_loss.get_rect(center=(screen_width // 2, screen_height // 2))
+           screen.blit(text_surface_loss, text_rect_loss)   # Draw the text on the screen.
 
-            # Pause before quitting to let players see the message.
-            time.sleep(2)
-            run = False
+           # Pause before quitting to let players see the message.
+           time.sleep(2)
+           run=False
 
-        if victory_message_displayed:
-            # Display "You Won" message when all aliens are destroyed.
-            font_win = pygame.font.Font(None, 74)  # Create a font object with a size of your choice.
-            text_surface_win = font_win.render('You Won!', True, white)  # Render the text.
-            text_rect_win = text_surface_win.get_rect(center=(screen_width // 2, screen_height // 2))
-            screen.blit(text_surface_win, text_rect_win)  # Draw the text on the screen.
+        if victory_message_displayed and not game_over:
+           # Display "You Won" message when all aliens are destroyed.
+           font_win = pygame.font.Font(None, 74)   # Create a font object with a size of your choice.
+           text_surface_win = font_win.render('You Won!', True, white)   # Render the text.
+           text_rect_win = text_surface_win.get_rect(center=(screen_width // 2, screen_height // 2))
+           screen.blit(text_surface_win, text_rect_win)   # Draw the text on the screen.
 
-            # Pause before quitting to let players see the message.
-            time.sleep(2)
-            run = False
+           # Pause before quitting to let players see the message.
+           time.sleep(2)
+           run=False
 
         spaceship_group.draw(screen)
         bullet_group.draw(screen)
@@ -208,14 +206,12 @@ def main():
         pygame.display.update()
 
         if game_over or victory_message_displayed:
-            time.sleep(2)  # Pause before quitting to let players see the message.
+           time.sleep(2)   # Pause before quitting to let players see the message.
 
     pygame.quit()
 
-
 def game_bg(screen, bg):
     screen.blit(bg, (0, 0))
-
 
 if __name__ == "__main__":
     main()
