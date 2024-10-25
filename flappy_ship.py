@@ -144,7 +144,7 @@ def show_victory_screen(screen):
 def main():
     # Set the display mode with a title bar and no special fullscreen flags
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("UFO Game")  # Set a title for the window
+    pygame.display.set_caption("Stellar Siege")  # Set a title for the window
 
     clock = pygame.time.Clock()
 

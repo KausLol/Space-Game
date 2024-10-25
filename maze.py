@@ -51,8 +51,8 @@ def fade_surface(surface, fade_in=True):
 # noinspection PyUnusedLocal
 def screen_1(screen, clock, font):
     font = pygame.font.Font(None, 36)
-    text1 = ("Solaris: A colossal crimson gas giant whose turbulent storms paint spiral patterns across "
-             "its massive surface like brushstrokes of fire.")
+    text1 = ("Planet Solaris is a colossal crimson gas giant, whose turbulent storms paint spiral patterns across "
+             "its massive surface, like brushstrokes of fire.")
     text2 = "The planet is abundant in Luminoth. You decide to take some home!"
 
     # Load GIF images
@@ -148,7 +148,7 @@ def screen_1(screen, clock, font):
 def screen_2(screen, clock):
     font = pygame.font.Font(None, 36)
     text = ("You made it just in time! However, a malfunction at the refueling station has forced you to fill only "
-            "25% of the fuel tank. Make your way towards the next planet in hopes of more fuel...")
+            "25% of the fuel tank. Make your way towards the next planet in hopes of more fuel!")
 
     # Initialize alpha value for fade effect
     alpha = 0
@@ -201,7 +201,7 @@ def screen_2(screen, clock):
 def screen_3(screen, clock):
     font = pygame.font.Font(None, 36)
     text = ("Oh no! You have encountered an unexpected asteroid belt. Navigate your way to the next planet! "
-            "You have about 20 seconds before your fuel runs out.")
+            "You have about 20 seconds before your fuel runs out!")
 
     # Initialize alpha value for fade effect
     alpha = 0
@@ -254,7 +254,7 @@ def screen_3(screen, clock):
 def screen_4(screen, clock):
     font = pygame.font.Font(None, 36)
     text = ("Victory! You've successfully navigated through the asteroid belt! "
-            "You can now proceed to your home, Planet Rosaria...")
+            "You can now proceed to your home, Planet Rosaria!")
 
     # Load GIF images
     gif_frames = load_gif("assets/planet2_gif")
@@ -316,7 +316,7 @@ def screen_4(screen, clock):
         # Draw GIF below the text with current alpha
         gif_surface = gif_frames[gif_index].copy()
         gif_surface.set_alpha(alpha)
-        gif_rect = gif_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
+        gif_rect = gif_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
         screen.blit(gif_surface, gif_rect)
 
         pygame.display.flip()
@@ -499,7 +499,7 @@ def main():
         screen_4(screen, clock)
         exit()
     else:
-        time_text = font.render('Skill Issue...!', True, (255, 255, 255))
+        time_text = font.render('Skill Issue!', True, (255, 255, 255))
 
 
 if __name__ == "__main__":

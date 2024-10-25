@@ -1,4 +1,3 @@
-# libraries
 import pygame
 from pygame.locals import *
 import time
@@ -19,19 +18,25 @@ def main():
     # define game variables
     rows = 4
     cols = 8
-    alien_cooldown = 10000  # bullet cooldown in milliseconds
+    alien_cooldown = 750  # bullet cooldown in milliseconds
     last_alien_shot = pygame.time.get_ticks()
 
     # define colors
     red = (255, 0, 0)
     green = (0, 255, 0)
     white = (255, 255, 255)
+    BLACK = (0, 0, 0)
 
     # window dimensions
     screen_width = 900
     screen_height = 900
 
     screen = pygame.display.set_mode((screen_width, screen_height))
+
+    # Game states
+    TITLE_SCREEN = 0
+    SECOND_SCREEN = 1
+    WELCOME_SCREEN = 2
 
     # set game title
     pygame.display.set_caption("Stellar Siege")
@@ -66,7 +71,7 @@ def main():
             speed = 8
 
             # set cooldown
-            cooldown = 0
+            cooldown = 450
 
             # get keypress
             key = pygame.key.get_pressed()
@@ -184,7 +189,10 @@ def main():
     spaceship_group.add(spaceship)
 
     # show title screen
-    show_title_screen(screen_width, screen_height)
+    show_title_screen(screen, screen_width, screen_height)
+
+    # Show the second screen (Planet Solaris refuel message)
+    show_second_screen(screen, screen_width, screen_height)
 
     # Show welcome screen before starting the game
     show_welcome_screen(screen, screen_width, screen_height)
@@ -194,6 +202,7 @@ def main():
     game_over = False
 
     while run:
+
         # sets fps
         clock.tick(fps)
 
@@ -264,7 +273,7 @@ def main():
 
             # renders the text
             text_surface = font.render(
-                "Skill Issue...", True, white
+                "Skill Issue...!", True, white
             )
 
             # Center the text on the screen.
@@ -274,6 +283,13 @@ def main():
 
             # draw text on screen
             screen.blit(text_surface, text_rect)
+            pygame.display.update()
+
+            # Wait for 2 seconds before quitting
+            pygame.time.delay(2000)
+
+            # Set run to False. exits the game
+            run = False
 
         # draw sprite groups
         spaceship_group.draw(screen)
@@ -300,8 +316,7 @@ def create_aliens(rows, cols, alien_group, aliens):
             alien_group.add(alien)
 
 
-# to show the title screen
-def show_title_screen(screen_width, screen_height):
+def show_title_screen(screen, screen_width, screen_height):
     pygame.font.init()
 
     # Load the UFO image
@@ -320,14 +335,14 @@ def show_title_screen(screen_width, screen_height):
     ufo_rect = image.get_rect(center=(screen_width // 2, center_y + 50))  # 50 pixels below center
 
     # Fade-in effect
-    for alpha in range(0, 256, 5):
-        screen.fill((0, 0, 0))
-        title_surface.set_alpha(alpha)
-        image.set_alpha(alpha)
-        screen.blit(title_surface, title_rect)
-        screen.blit(image, ufo_rect)
-        pygame.display.flip()
-        pygame.time.delay(30)
+    for alpha in range(0, 256, 5):  # Fade in from 0 to 255
+        screen.fill((0, 0, 0))  # Fill the screen with black
+        title_surface.set_alpha(alpha)  # Set the title text alpha
+        image.set_alpha(alpha)  # Set the UFO image alpha
+        screen.blit(title_surface, title_rect)  # Draw the title
+        screen.blit(image, ufo_rect)  # Draw the UFO
+        pygame.display.flip()  # Update the display
+        pygame.time.delay(30)  # Adjust the delay for fade speed
 
     # Main loop for title screen
     running = True
@@ -335,22 +350,18 @@ def show_title_screen(screen_width, screen_height):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-            # check for key enter press
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-
-                # exits loop to go to next screen
-                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:  # Check for Enter key press
+                running = False  # Exit the loop to go to the next screen
 
     # Fade-out effect
-    for alpha in range(255, -1, -5):
-        screen.fill((0, 0, 0))
-        title_surface.set_alpha(alpha)
-        image.set_alpha(alpha)
-        screen.blit(title_surface, title_rect)
-        screen.blit(image, ufo_rect)
-        pygame.display.flip()
-        pygame.time.delay(30)
+    for alpha in range(255, -1, -5):  # Fade out from 255 to 0
+        screen.fill((0, 0, 0))  # Fill the screen with black
+        title_surface.set_alpha(alpha)  # Set the title text alpha
+        image.set_alpha(alpha)  # Set the UFO image alpha
+        screen.blit(title_surface, title_rect)  # Draw the title
+        screen.blit(image, ufo_rect)  # Draw the UFO
+        pygame.display.flip()  # Update the display
+        pygame.time.delay(30)  # Adjust the delay for fade speed
 
 
 # shows welcome screen
@@ -389,7 +400,7 @@ def show_welcome_screen(screen, screen_width, screen_height):
                 exit()
 
             if event.type == KEYDOWN and event.key == K_RETURN:
-                fade_out_text(screen, text_surface, alien_image, alien_image_rect)
+                fade_out(screen, text_surface, alien_image, alien_image_rect)
                 return
 
         screen.fill((0, 0, 0))
@@ -414,7 +425,7 @@ def show_welcome_screen(screen, screen_width, screen_height):
                 exit()
 
             if event.type == KEYDOWN and event.key == K_RETURN:
-                fade_out_text(screen, text_surface, alien_image, alien_image_rect)
+                fade_out(screen, text_surface, alien_image, alien_image_rect)
                 return
 
         screen.fill((0, 0, 0))
@@ -424,8 +435,120 @@ def show_welcome_screen(screen, screen_width, screen_height):
         pygame.display.update()
 
 
-# to fade out text
-def fade_out_text(screen, text_surface, alien_image, alien_image_rect):
+# function to wrap text
+def wrap_text(text, font, max_width):
+    words = text.split(' ')
+    wrapped_lines = []
+    line = ''
+
+    for word in words:
+        # Add a word to the line and measure the width
+        test_line = line + word + ' '
+        width, height = font.size(test_line)
+        if width <= max_width:
+            line = test_line
+        else:
+            wrapped_lines.append(line)
+            line = word + ' '
+    wrapped_lines.append(line)
+
+    return wrapped_lines
+
+
+# shows second screen after title and before welcome
+def show_second_screen(screen, screen_width, screen_height):
+    pygame.font.init()
+
+    # Set the paragraph text
+    paragraph = ("You're on your way to your home planet. However, luck isn't on your side as "
+                 "you are running low on fuel. Make a quick pit stop at Planet Solaris to refuel. Press Enter!")
+
+    # Load the planet image (assume an image exists)
+    planet_image = pygame.image.load("assets/fuel.png")
+
+    # Set up fonts
+    font = pygame.font.Font(None, 40)
+
+    # Set the maximum width for text wrapping
+    max_width = 800
+
+    # Wrap the paragraph text
+    wrapped_text = wrap_text(paragraph, font, max_width)
+
+    # Calculate the height for properly positioning the text
+    line_height = font.get_height()
+
+    # Set the initial y-coordinate for the first line
+    start_y = (screen_height // 2) - 100
+
+    # Set up image positioning
+    planet_image_rect = planet_image.get_rect(
+        center=(screen_width // 2, start_y + (line_height * len(wrapped_text) // 2) + 215))
+
+    # Fade-in effect for text
+    alpha_value = 0
+    while alpha_value < 255:
+        screen.fill((0, 0, 0))  # Clear the screen
+        for i, line in enumerate(wrapped_text):
+            text_surface = font.render(line, True, (255, 255, 255))
+            text_surface.set_alpha(alpha_value)  # Set alpha for this line
+            screen.blit(text_surface, (screen_width // 2 - text_surface.get_width() // 2, start_y + i * line_height))
+
+        planet_image.set_alpha(alpha_value)  # Set the alpha for the image
+        screen.blit(planet_image, planet_image_rect)  # Draw the planet image
+
+        alpha_value += 5
+        if alpha_value > 255:
+            alpha_value = 255
+
+        pygame.display.update()
+        time.sleep(0.03)
+
+    # Wait for Enter key to continue to fade-out
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                fade_out_text(screen, wrapped_text, font, planet_image, planet_image_rect,
+                              screen_width, start_y, line_height)
+
+                return
+
+        screen.fill((0, 0, 0))
+        for i, line in enumerate(wrapped_text):
+            text_surface = font.render(line, True, (255, 255, 255))
+            screen.blit(text_surface, (screen_width // 2 - text_surface.get_width() // 2, start_y + i * line_height))
+
+        screen.blit(planet_image, planet_image_rect)  # Draw the planet image
+        pygame.display.update()
+
+
+# fades out text for screen 2
+def fade_out_text(screen, wrapped_text, font, planet_image, planet_image_rect, screen_width, start_y, line_height):
+    alpha_value = 255
+    while alpha_value > 0:
+        screen.fill((0, 0, 0))  # Clear the screen
+        for i, line in enumerate(wrapped_text):
+            text_surface = font.render(line, True, (255, 255, 255))
+            text_surface.set_alpha(alpha_value)  # Set alpha for this line
+            screen.blit(text_surface, (screen_width // 2 - text_surface.get_width() // 2, start_y + i * line_height))
+
+        planet_image.set_alpha(alpha_value)  # Set the alpha for the image
+        screen.blit(planet_image, planet_image_rect)  # Draw the planet image
+
+        alpha_value -= 5
+        if alpha_value < 0:
+            alpha_value = 0
+
+        pygame.display.update()
+        time.sleep(0.03)
+
+
+# to fade out text for second screen (part 2)
+def fade_out(screen, text_surface, alien_image, alien_image_rect):
     # get the text's rectangle for proper positioning
     text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 - 100))
 
@@ -460,7 +583,7 @@ def win_message_1(screen, screen_width, screen_height):
 
     # load victory message text
     font = pygame.font.Font(None, 50)
-    text_surface = font.render("Victory! You can proceed to Planet Solaris...", True, (255, 255, 255))
+    text_surface = font.render("Victory! You can proceed to Planet Solaris!", True, (255, 255, 255))
 
     # get the position for the text
     text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2 - 100))
