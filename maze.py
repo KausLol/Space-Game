@@ -1,6 +1,8 @@
 import pygame
 import random
 import os
+import subprocess
+import sys
 
 # initialize Pygame
 pygame.init()
@@ -17,14 +19,18 @@ BLACK = (0, 0, 0)
 font = pygame.font.Font(None, 36)
 
 # Load images
-spaceship_img = pygame.image.load('assets/spaceship_small.png')
+spaceship_img = pygame.image.load("assets/spaceship_small.png")
 spaceship_img = pygame.transform.scale(spaceship_img, (CELL_SIZE, CELL_SIZE))
-planet_img = pygame.image.load('assets/planet2_small(1).png')
+planet_img = pygame.image.load("assets/planet2_small(1).png")
 planet_img = pygame.transform.scale(planet_img, (CELL_SIZE, CELL_SIZE))
 
 # Load asteroid images
-asteroid_images = [pygame.transform.scale(pygame.image.load(f'assets/asteroids_small/{i}.png'), (CELL_SIZE, CELL_SIZE))
-                   for i in range(1, 6)]
+asteroid_images = [
+    pygame.transform.scale(
+        pygame.image.load(f"assets/asteroids_small/{i}.png"), (CELL_SIZE, CELL_SIZE)
+    )
+    for i in range(1, 6)
+]
 
 
 # Load individual frame images for gif
@@ -51,9 +57,11 @@ def fade_surface(surface, fade_in=True):
 # noinspection PyUnusedLocal
 def screen_1(screen, clock, font):
     font = pygame.font.Font(None, 36)
-    text1 = ("Planet Solaris is a colossal crimson gas giant, whose turbulent storms paint spiral patterns across "
-             "its massive surface, like brushstrokes of fire.")
-    text2 = "The planet is abundant in Luminoth. You decide to take some home!"
+    text1 = (
+        "Planet Solaris is a colossal crimson gas giant, whose turbulent storms paint spiral patterns across "
+        "its massive surface, like brushstrokes of fire."
+    )
+    text2 = "The planet is abundant in Celestial element. You decide to take some home!"
 
     # Load GIF images
     planet_images = load_gif("assets/planet1_gif")
@@ -147,8 +155,10 @@ def screen_1(screen, clock, font):
 # Function to display Screen 2
 def screen_2(screen, clock):
     font = pygame.font.Font(None, 36)
-    text = ("You made it just in time! However, a malfunction at the refueling station has forced you to fill only "
-            "25% of the fuel tank. Make your way towards the next planet in hopes of more fuel!")
+    text = (
+        "You made it just in time! However, a malfunction at the refueling station has forced you to fill only "
+        "25% of the fuel tank. Make your way towards the next planet in hopes of more fuel!"
+    )
 
     # Initialize alpha value for fade effect
     alpha = 0
@@ -200,8 +210,10 @@ def screen_2(screen, clock):
 # Function to display Screen 3
 def screen_3(screen, clock):
     font = pygame.font.Font(None, 36)
-    text = ("Oh no! You have encountered an unexpected asteroid belt. Navigate your way to the next planet! "
-            "You have about 20 seconds before your fuel runs out!")
+    text = (
+        "Oh no! You have encountered an unexpected asteroid belt. Navigate your way to the next planet! "
+        "You have about 20 seconds before your fuel runs out!"
+    )
 
     # Initialize alpha value for fade effect
     alpha = 0
@@ -253,8 +265,10 @@ def screen_3(screen, clock):
 # Function to display Screen 3 with Victory text and GIF
 def screen_4(screen, clock):
     font = pygame.font.Font(None, 36)
-    text = ("Victory! You've successfully navigated through the asteroid belt! "
-            "You can now proceed to your home, Planet Rosaria!")
+    text = (
+        "Victory! You've successfully navigated through the asteroid belt! "
+        "You can now proceed to the next planet, Rosaria!"
+    )
 
     # Load GIF images
     gif_frames = load_gif("assets/planet2_gif")
@@ -316,7 +330,9 @@ def screen_4(screen, clock):
         # Draw GIF below the text with current alpha
         gif_surface = gif_frames[gif_index].copy()
         gif_surface.set_alpha(alpha)
-        gif_rect = gif_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
+        gif_rect = gif_surface.get_rect(
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50)
+        )
         screen.blit(gif_surface, gif_rect)
 
         pygame.display.flip()
@@ -355,7 +371,10 @@ def create_maze():
         y = random.randint(0, MAZE_HEIGHT - 1)
 
         # Ensure the starting area and the goal area are clear
-        if not ((0 <= x <= 5 and 0 <= y <= 5) or (x >= MAZE_WIDTH - 6 and y >= MAZE_HEIGHT - 6)):
+        if not (
+            (0 <= x <= 5 and 0 <= y <= 5)
+            or (x >= MAZE_WIDTH - 6 and y >= MAZE_HEIGHT - 6)
+        ):
             maze[y][x] = 1
             asteroid_positions[(x, y)] = random.choice(asteroid_images)
 
@@ -394,7 +413,13 @@ def draw_maze(screen, maze, asteroid_positions):
             elif maze[y][x] == 2:
 
                 # Center the planet in the cell
-                screen.blit(planet_img, (x * CELL_SIZE + (CELL_SIZE - 50) // 2, y * CELL_SIZE + (CELL_SIZE - 50) // 2))
+                screen.blit(
+                    planet_img,
+                    (
+                        x * CELL_SIZE + (CELL_SIZE - 50) // 2,
+                        y * CELL_SIZE + (CELL_SIZE - 50) // 2,
+                    ),
+                )
 
 
 # Player object
@@ -406,7 +431,11 @@ class Player:
     def move(self, dx, dy, maze):
         new_x = self.x + dx
         new_y = self.y + dy
-        if 0 <= new_x < MAZE_WIDTH and 0 <= new_y < MAZE_HEIGHT and maze[new_y][new_x] != 1:
+        if (
+            0 <= new_x < MAZE_WIDTH
+            and 0 <= new_y < MAZE_HEIGHT
+            and maze[new_y][new_x] != 1
+        ):
             self.x = new_x
             self.y = new_y
 
@@ -497,9 +526,13 @@ def main():
     screen.fill(BLACK)
     if won:
         screen_4(screen, clock)
-        exit()
+
+        # starts flappy ship
+        subprocess.run(["python", "flappy_ship.py"])
+        sys.exit()
+
     else:
-        time_text = font.render('Skill Issue!', True, (255, 255, 255))
+        time_text = font.render("Skill Issue!", True, (255, 255, 255))
 
 
 if __name__ == "__main__":
